@@ -1,0 +1,14 @@
+# לכל הפרויקט
+node_modules/
+dist/
+build/
+.env
+
+# ל-React Native (ui)
+ui/android/
+ui/ios/
+ui/.expo/
+ui/web-build/
+
+# ל-Express (api)
+api/.env
