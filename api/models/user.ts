@@ -10,7 +10,7 @@ const itemSchema = new mongoose.Schema(
   { _id: false }
 )
 
-const cellSchema = new mongoose.Schema(
+const roomSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -24,13 +24,7 @@ const Schema = mongoose.Schema
 const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  cells: [cellSchema],
+  rooms: [roomSchema],
 })
-
-// const Schema = mongoose.Schema
-// const userSchema = new Schema({
-//   email: { type: String, required: true, unique: true },
-//   password: { type: String, required: true },
-// })
 
 export default mongoose.model('user', userSchema, 'users')

@@ -2,7 +2,7 @@ import User from '../models/user'
 export const newUser = async (userData: {
   email: string
   password: string
-  cells?: {
+  rooms?: {
     title: string
     description: string
     src?: string

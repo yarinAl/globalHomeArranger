@@ -2,26 +2,27 @@ import Entypo from '@expo/vector-icons/Entypo'
 import Feather from '@expo/vector-icons/Feather'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { LinearGradient } from 'expo-linear-gradient'
-import {
-  Button,
-  Dialog,
-  PaperProvider,
-  Portal,
-  TextInput,
-} from 'react-native-paper'
+import { PaperProvider } from 'react-native-paper'
 
 import React, { useState } from 'react'
 
+import AddFormDialog from '@/components/formDialog'
 import { Link } from 'expo-router'
 import { Image, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import '../global.css'
 export default function Home() {
   const [boxes, setBoxes] = useState(['בדיקה'])
-  const [name, onChangeName] = React.useState('')
+  const [values, setValues] = React.useState<string[]>(['', ''])
 
+  // const onChangeName = (values: string[]) => {
+  //   setName(values)
+  // }
   const [visible, setVisible] = React.useState(false)
-
+  const handleSubmit = (values: string[]) => {
+    setBoxes([...boxes, ...values])
+    hideDialog()
+  }
   const showDialog = () => setVisible(true)
 
   const hideDialog = () => setVisible(false)
@@ -70,7 +71,7 @@ export default function Home() {
                 ))}
             </View>
             <View>
-              <Portal>
+              {/* <Portal>
                 <Dialog visible={visible} onDismiss={hideDialog}>
                   <Dialog.Title>
                     <Text>Create new Room</Text>
@@ -92,7 +93,14 @@ export default function Home() {
                     </View>
                   </Dialog.Actions>
                 </Dialog>
-              </Portal>
+              </Portal> */}
+              <AddFormDialog
+                visible={visible}
+                onDismiss={hideDialog}
+                onSubmit={handleSubmit}
+                title={'Create New Room'}
+                values={values}
+              ></AddFormDialog>
             </View>
           </LinearGradient>
           <View className='absolute flex-row justify-center items-center gap-4 bottom-0 h-20 bg-[#003966]  w-full'>
