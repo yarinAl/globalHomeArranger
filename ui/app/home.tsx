@@ -13,16 +13,19 @@ import { Link } from 'expo-router'
 import { Image, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import '../global.css'
+
 interface Room {
+  _id: string
   title: string
   description: string
   src?: string
 }
+
 export default function Home() {
-  const [rooms, setRooms] = useState<string[]>([])
+  const [rooms, setRooms] = useState<Room[]>([])
   const [values, setValues] = useState<string[]>(['', '', ''])
   const [visible, setVisible] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null) // userId בתור state
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -39,7 +42,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (!userId) return // לא ממשיכים עד שיש userId
+    if (!userId) return
 
     async function loadRooms() {
       try {
@@ -48,7 +51,7 @@ export default function Home() {
         )
         if (!res.ok) throw new Error('Failed to fetch rooms')
         const roomsData = await res.json()
-        setRooms(roomsData.map((room: any) => room.name))
+        setRooms(roomsData)
       } catch (error) {
         console.error(error)
       }
@@ -60,37 +63,35 @@ export default function Home() {
   const handleSubmit = async (values: string[]) => {
     if (!userId) {
       console.error('User ID is missing')
-      console.error(userId)
-
       return
     }
 
-    // הכנת אובייקט room לפי המבנה שאתה מגדיר (כאן דוגמה)
     const newRoom: RoomData = {
       title: values[0],
       description: values[1],
       src: values[2],
-      items: [], // או תוכל להוסיף פרטים לפי הצורך
+      items: [],
     }
 
     try {
       const updatedRooms = await addRoomToUser(userId, newRoom)
-      setRooms((updatedRooms as Room[]).map((room) => room.title))
+      setRooms(updatedRooms)
       hideDialog()
     } catch (error: any) {
       console.error('Failed to add room:', error.message)
     }
   }
+
   const showDialog = () => setVisible(true)
   const hideDialog = () => setVisible(false)
 
   return (
     <PaperProvider>
       <SafeAreaView
-        className='flex-1  bg-white'
+        className='flex-1 bg-white'
         edges={['right', 'bottom', 'left']}
       >
-        <View className=' h-[100%] relative'>
+        <View className='h-[100%] relative'>
           <LinearGradient
             className='relative'
             colors={['#25c0de', '#08a2ec']}
@@ -98,9 +99,9 @@ export default function Home() {
             end={{ x: 0.5, y: 0 }}
             style={{ flex: 1 }}
           >
-            <View className='  flex-col'>
+            <View className='flex-col'>
               <View className='max-h-60 text-center flex justify-center items-center max-w-[95%]'>
-                <Text className='text-7xl  text-white'>
+                <Text className='text-7xl text-white'>
                   <Image
                     resizeMode='contain'
                     className='w-70 h-70'
@@ -108,20 +109,30 @@ export default function Home() {
                   />
                 </Text>
               </View>
-              <Text className=' font-bold text-3xl mt-20 text-start ml-12'>
+              <Text className='font-bold text-3xl mt-20 text-start ml-12'>
                 House Rooms
               </Text>
-              {rooms
-                .filter((box) => box != '')
-                .map((box, index) => (
-                  <Link href={`/room?name=${box}`} asChild key={index}>
-                    <TouchableOpacity>
-                      <View className='bg-white m-4 p-4 rounded-lg shadow-lg'>
-                        <Text>{box}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  </Link>
-                ))}
+              {rooms.map((room) => (
+                <Link
+                  key={room._id}
+                  href={`/room?userId=${userId}&roomId=${room._id}`}
+                  asChild
+                >
+                  <TouchableOpacity>
+                    <View className='bg-white m-4 p-4 rounded-lg shadow-lg'>
+                      <Text>{room.title}</Text>
+                      <Text>{room.description}</Text>
+
+                      <Image
+                        source={{
+                          uri: 'https://letsenhance.io/static/73136da51c245e80edc6ccfe44888a99/1015f/MainBefore.jpg',
+                        }}
+                        style={{ width: 50, height: 50 }} // חובה להגדיר מידות
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </Link>
+              ))}
             </View>
             <View>
               <AddFormDialog
@@ -135,10 +146,10 @@ export default function Home() {
                   'Room Description',
                   'Room Image URL',
                 ]}
-              ></AddFormDialog>
+              />
             </View>
           </LinearGradient>
-          <View className='absolute flex-row justify-center items-center gap-4 bottom-0 h-20 bg-[#003966]  w-full'>
+          <View className='absolute flex-row justify-center items-center gap-4 bottom-0 h-20 bg-[#003966] w-full'>
             <Pressable className='flex-1 justify-center items-center'>
               <Feather name='menu' size={20} color='white' />
               <Text className='text-white'>Menu</Text>
