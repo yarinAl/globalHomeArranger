@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { LinearGradient } from 'expo-linear-gradient'
+import { router } from 'expo-router'
 import React from 'react'
 import { Alert, Image, Pressable, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -13,7 +14,8 @@ export default function SignUp() {
     try {
       const result = await register(email, password)
       console.log('המשתמש נרשם בהצלחה:', result)
-      // ... מעבר למסך הבא, שמירת טוקן וכו'
+      alert('Registration successful')
+      router.navigate('/signIn') // מעבר למסך ההתחברות
     } catch (error: unknown) {
       // מחרוזת ברירת‑מחדל
       let message = 'Registration failed'

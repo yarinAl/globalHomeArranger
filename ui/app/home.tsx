@@ -4,32 +4,85 @@ import FontAwesome from '@expo/vector-icons/FontAwesome'
 import { LinearGradient } from 'expo-linear-gradient'
 import { PaperProvider } from 'react-native-paper'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import AddFormDialog from '@/components/formDialog'
+import { addRoomToUser, RoomData } from '@/services/userService'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Link } from 'expo-router'
 import { Image, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import '../global.css'
+interface Room {
+  title: string
+  description: string
+  src?: string
+}
 export default function Home() {
-  const [boxes, setBoxes] = useState(['בדיקה'])
-  const [values, setValues] = React.useState<string[]>(['', ''])
+  const [rooms, setRooms] = useState<string[]>([])
+  const [values, setValues] = useState<string[]>(['', '', ''])
+  const [visible, setVisible] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null) // userId בתור state
 
-  // const onChangeName = (values: string[]) => {
-  //   setName(values)
-  // }
-  const [visible, setVisible] = React.useState(false)
-  const handleSubmit = (values: string[]) => {
-    setBoxes([...boxes, ...values])
-    hideDialog()
+  useEffect(() => {
+    const loadUserId = async () => {
+      const storedUserId = await AsyncStorage.getItem('userId')
+      if (storedUserId) {
+        console.log('Loaded userId:', storedUserId)
+        setUserId(storedUserId)
+      } else {
+        console.warn('No userId found in AsyncStorage')
+      }
+    }
+
+    loadUserId()
+  }, [])
+
+  useEffect(() => {
+    if (!userId) return // לא ממשיכים עד שיש userId
+
+    async function loadRooms() {
+      try {
+        const res = await fetch(
+          `http://10.0.0.5:5000/api/users/${userId}/rooms`
+        )
+        if (!res.ok) throw new Error('Failed to fetch rooms')
+        const roomsData = await res.json()
+        setRooms(roomsData.map((room: any) => room.name))
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    loadRooms()
+  }, [userId])
+
+  const handleSubmit = async (values: string[]) => {
+    if (!userId) {
+      console.error('User ID is missing')
+      console.error(userId)
+
+      return
+    }
+
+    // הכנת אובייקט room לפי המבנה שאתה מגדיר (כאן דוגמה)
+    const newRoom: RoomData = {
+      title: values[0],
+      description: values[1],
+      src: values[2],
+      items: [], // או תוכל להוסיף פרטים לפי הצורך
+    }
+
+    try {
+      const updatedRooms = await addRoomToUser(userId, newRoom)
+      setRooms((updatedRooms as Room[]).map((room) => room.title))
+      hideDialog()
+    } catch (error: any) {
+      console.error('Failed to add room:', error.message)
+    }
   }
   const showDialog = () => setVisible(true)
-
   const hideDialog = () => setVisible(false)
-  const addRoom = (name: string) => {
-    setBoxes([...boxes, name])
-    hideDialog()
-  }
 
   return (
     <PaperProvider>
@@ -58,7 +111,7 @@ export default function Home() {
               <Text className=' font-bold text-3xl mt-20 text-start ml-12'>
                 House Rooms
               </Text>
-              {boxes
+              {rooms
                 .filter((box) => box != '')
                 .map((box, index) => (
                   <Link href={`/room?name=${box}`} asChild key={index}>
@@ -71,35 +124,17 @@ export default function Home() {
                 ))}
             </View>
             <View>
-              {/* <Portal>
-                <Dialog visible={visible} onDismiss={hideDialog}>
-                  <Dialog.Title>
-                    <Text>Create new Room</Text>
-                  </Dialog.Title>
-                  <Dialog.Content>
-                    <TextInput
-                      onChangeText={onChangeName}
-                      value={name}
-                    ></TextInput>
-                  </Dialog.Content>
-                  <Dialog.Actions>
-                    <View className='flex-row justify-between w-full'>
-                      <Button onPress={() => addRoom(name)}>
-                        <Text className=' text-green-500'>OK</Text>
-                      </Button>
-                      <Button className='uppercase' onPress={hideDialog}>
-                        <Text className=' text-red-500'>CANCEL</Text>
-                      </Button>
-                    </View>
-                  </Dialog.Actions>
-                </Dialog>
-              </Portal> */}
               <AddFormDialog
                 visible={visible}
                 onDismiss={hideDialog}
                 onSubmit={handleSubmit}
                 title={'Create New Room'}
                 values={values}
+                placeholders={[
+                  'Room Name',
+                  'Room Description',
+                  'Room Image URL',
+                ]}
               ></AddFormDialog>
             </View>
           </LinearGradient>
@@ -115,7 +150,6 @@ export default function Home() {
               <Entypo name='plus' size={20} color='white' />
               <Text className='text-white'>Add Room</Text>
             </Pressable>
-
             <Pressable className='flex-1 justify-center items-center'>
               <FontAwesome name='camera' size={20} color='white' />
               <Text className='text-white'>Camera</Text>

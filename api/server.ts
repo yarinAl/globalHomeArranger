@@ -3,6 +3,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import { router as loginRouter } from './routers/loginRouter'
 import { router as registerRouter } from './routers/registerRouter'
+import userRouter from './routers/userRouter'
 
 require('dotenv').config()
 
@@ -14,6 +15,8 @@ app.use(express.json())
 // Routes
 app.use('/register', registerRouter)
 app.use('/login', loginRouter)
+app.use('/api/users', userRouter)
+// app.use('/api', userRouter)
 
 mongoose
   .connect(process.env.MONGO_URI ?? '')

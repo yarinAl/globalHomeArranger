@@ -10,6 +10,7 @@ export interface RegisterResponse {
 export interface LoginResponse {
   msg: string
   token: string
+  userId: string
 }
 
 export const register = async (
@@ -23,8 +24,8 @@ export const register = async (
     })
     return res.data
   } catch (error: unknown) {
-    const err = error as AxiosError<{ msg?: string }>
-    const message = err.response?.data?.msg ?? 'Registration failed'
+    const err = error as AxiosError<{ error?: string }>
+    const message = err.response?.data?.error ?? 'Registration failed'
     throw new Error(message)
   }
 }

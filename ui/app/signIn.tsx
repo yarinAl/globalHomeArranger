@@ -1,4 +1,4 @@
-import { login } from '@/services/authService'
+import { login, LoginResponse } from '@/services/authService'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
@@ -19,11 +19,16 @@ export default function SignIn() {
     }
     setLoading(true)
     try {
-      const { token } = await login(email, password) // קריאה ל‑API
-      await AsyncStorage.setItem('token', token) // שמירת הטוקן
-      console.log('Received token:', token) // לוג תקין
-      Alert.alert('התחברת בהצלחה!')
-      router.navigate('/home') // מעבר למסך הבית
+      const loginResponse: LoginResponse = await login(email, password)
+      const { token, userId } = loginResponse
+
+      if (!userId) {
+        throw new Error('User ID is missing in the response')
+      }
+      console.log('Login successful:', loginResponse)
+      await AsyncStorage.setItem('token', token)
+      await AsyncStorage.setItem('userId', userId)
+      router.navigate('/home')
     } catch (err) {
       Alert.alert('שגיאה', (err as Error).message)
     } finally {

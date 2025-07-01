@@ -8,6 +8,7 @@ type AddFormDialogProps = {
   onSubmit: (values: string[]) => void
   values: string[]
   title: string
+  placeholders: string[]
 }
 
 const AddFormDialog = ({
@@ -16,10 +17,10 @@ const AddFormDialog = ({
   onSubmit,
   title,
   values,
+  placeholders,
 }: AddFormDialogProps) => {
   const [localValues, setLocalValues] = useState<string[]>([])
 
-  // מוודאים שכל פעם שהדיאלוג נפתח או שהערכים משתנים - מעדכנים את ה-localValues
   useEffect(() => {
     if (visible) {
       setLocalValues(values)
@@ -41,6 +42,7 @@ const AddFormDialog = ({
             {localValues.map((value, index) => (
               <TextInput
                 key={index}
+                placeholder={placeholders[index]}
                 onChangeText={(text) => handleChange(text, index)}
                 value={value}
               />
