@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
-import React from 'react'
+import React, { useState } from 'react'
 import { Alert, Image, Pressable, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import '../global.css'
@@ -10,6 +10,19 @@ import { register } from '../services/authService'
 export default function SignUp() {
   const [email, setEmail] = React.useState<string>('')
   const [password, setPassword] = React.useState<string>('')
+  const [mailError, setMailError] = useState(false)
+  const [passwordError, setPasswordError] = useState(false)
+  const validateMail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    // בדיקת תקינות כתובת האימייל
+    setMailError(emailRegex.test(email) ? false : true)
+  }
+  const validatePassword = () => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    // בדיקת תקינות סיסמה
+    setPasswordError(passwordRegex.test(password) ? false : true)
+  }
   const handleRegister = async () => {
     try {
       const result = await register(email, password)
@@ -68,14 +81,32 @@ export default function SignUp() {
                       value={email}
                       onChangeText={setEmail}
                       placeholder='Email'
-                      className=' border font-bold border-black mb-5   p-3  bg-white'
+                      className={` border border-black mb-5 rounded-xl  p-3 bg-white ${
+                        mailError ? 'border-red-500 mb-3' : 'border-black'
+                      }`}
+                      onBlur={validateMail}
                     ></TextInput>
+                    {mailError && (
+                      <Text className='text-red-600 mb-2 pl-2'>
+                        Invalid Mail Adress{' '}
+                      </Text>
+                    )}
+
                     <TextInput
                       value={password}
                       onChangeText={setPassword}
                       placeholder='Password'
-                      className=' border border-black mb-5   p-3  bg-white'
+                      className={` border rounded-xl border-black mb-5   p-3  bg-white ${
+                        passwordError ? 'border-red-500 mb-3' : 'border-black'
+                      }`}
+                      onBlur={validatePassword}
                     ></TextInput>
+                    {passwordError && (
+                      <Text className='text-red-600 max-w-[95%] mt-2 pl-2'>
+                        Password must be at least 8 characters long, include
+                        uppercase, lowercase, a number, and a special character
+                      </Text>
+                    )}
                   </View>
 
                   <Pressable onPress={() => handleRegister()}>

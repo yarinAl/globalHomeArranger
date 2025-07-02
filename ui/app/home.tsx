@@ -1,6 +1,7 @@
 import Entypo from '@expo/vector-icons/Entypo'
 import Feather from '@expo/vector-icons/Feather'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
+import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { PaperProvider } from 'react-native-paper'
 
@@ -10,7 +11,14 @@ import AddFormDialog from '@/components/formDialog'
 import { addRoomToUser, RoomData } from '@/services/userService'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Link } from 'expo-router'
-import { Image, Pressable, Text, TouchableOpacity, View } from 'react-native'
+import {
+  Alert,
+  Image,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import '../global.css'
 
@@ -26,6 +34,30 @@ export default function Home() {
   const [values, setValues] = useState<string[]>(['', '', ''])
   const [visible, setVisible] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+
+  const [imageUri, setImageUri] = useState<string | null>(null)
+
+  const pickImage = async () => {
+    // מבקש הרשאות
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permissionResult.granted) {
+      Alert.alert('אין הרשאה', 'אנא אפשר גישה לגלריה')
+      return
+    }
+
+    // פותח את הגלריה לבחירת תמונה
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, // מאפשר עריכה כמו חיתוך
+      aspect: [4, 3],
+      quality: 1,
+    })
+
+    if (!result.canceled) {
+      setImageUri(result.assets[0].uri)
+    }
+  }
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -119,16 +151,35 @@ export default function Home() {
                   asChild
                 >
                   <TouchableOpacity>
-                    <View className='bg-white m-4 p-4 rounded-lg shadow-lg'>
-                      <Text>{room.title}</Text>
-                      <Text>{room.description}</Text>
-
-                      <Image
-                        source={{
-                          uri: 'https://letsenhance.io/static/73136da51c245e80edc6ccfe44888a99/1015f/MainBefore.jpg',
-                        }}
-                        style={{ width: 50, height: 50 }} // חובה להגדיר מידות
-                      />
+                    <View className='flex-row bg-blue-200 m-4 p-4 rounded-lg shadow-lg'>
+                      {imageUri && (
+                        <Image
+                          className='rounded-full'
+                          source={{ uri: imageUri }}
+                          style={{ width: 70, height: 70 }} // חובה להגדיר מידות
+                        />
+                      )}
+                      <View className='ml-4  flex-1'>
+                        <Text className='text-center text-xl pb-3'>
+                          {room.title}
+                        </Text>
+                        <Text className='text-center'>{room.description}</Text>
+                      </View>
+                      <View className='ml-4 flex-1'>
+                        <Pressable className='bg-red-600 p-2 w-full rounded mb-2'>
+                          <Text className='text-center uppercase text-white'>
+                            delete
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={pickImage}
+                          className='bg-green-600 p-2 w-full rounded '
+                        >
+                          <Text className='text-center uppercase text-white'>
+                            Add Image
+                          </Text>
+                        </Pressable>
+                      </View>
                     </View>
                   </TouchableOpacity>
                 </Link>
